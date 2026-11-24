@@ -16,7 +16,7 @@ async function login(page: Page, username = 'standard_user', password = 'secret_
 /** Logs out and confirms the login screen, as a test cleanup step. */
 async function logout(page: Page) {
   await page.getByRole('button', { name: 'Open Menu' }).click();
-  await page.getByRole('link', { name: 'Logout' }).click();
+  await page.getByText('Logout', { exact: true }).click();
   await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
 }
 
@@ -44,16 +44,17 @@ test('нэвтрээд барааг сагсанд нэмэх', async ({ page })
 
   await expect(page).toHaveURL(/\/inventory\.html$/);
 
-  const backpack = page.getByText('Sauce Labs Backpack', { exact: true });
-  await expect(backpack).toBeVisible();
-  await backpack.locator('..').getByRole('button', { name: 'Add to cart' }).click();
+  const backpackCard = page
+    .locator('.inventory_item')
+    .filter({ hasText: 'Sauce Labs Backpack' });
+  await expect(backpackCard).toBeVisible();
+  await backpackCard.getByRole('button', { name: 'Add to cart' }).click();
 
-  await expect(page.getByRole('link', { name: '1' })).toBeVisible();
-  await page.getByRole('link', { name: '1' }).click();
+  const cartButton = page.getByRole('button', { name: 'Cart, 1 items' });
+  await expect(cartButton).toBeVisible();
+  await cartButton.click();
   await expect(page).toHaveURL(/\/cart\.html$/);
   await expect(page.getByText('Sauce Labs Backpack', { exact: true })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Open Menu' }).click();
-  await page.getByRole('link', { name: 'Logout' }).click();
-  await expect(page.getByRole('button', { name: 'Login' })).toBeVisible();
+  await logout(page);
 });
